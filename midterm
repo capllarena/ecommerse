@@ -1,0 +1,450 @@
+1.	SELECT * FROM products WHERE item_status = 'A';
+2.	SELECT * FROM users WHERE user_status = 'I';
+3.	order_id, date_ordered, username, item_name, total_amount
+
+Note: total_amount = SUM(item_qty * item_price)
+SELECT o.order_id, o.date_ordered, u.username, p.item_name, SUM(o.item_qty * p.item_price) as total_amount
+FROM orders o
+JOIN users u ON o.user_id = u.user_id
+JOIN products p ON o.item_id = p.item_id
+GROUP BY o.order_id, o.date_ordered, u.username, p.item_name;
+4.	order_status, order_id, user_name, item_name, total_amount, total_qty
+
+Note: total_qty = SUM(item_qty)
+SELECT o.order_status, o.order_id, u.username as user_name, p.item_name, SUM(o.item_qty * p.item_price) as total_amount, SUM(o.item_qty) as total_qty FROM orders o JOIN users u ON o.user_id = u.user_id JOIN products p ON o.item_id = p.item_id WHERE o.order_status = 'D' GROUP BY o.order_status, o.order_id, u.username, p.item_name;
+5.	SELECT p.item_name, o.item_qty, o.date_ordered, u.username FROM orders o JOIN users u ON o.user_id = u.user_id JOIN products p ON o.item_id = p.item_id WHERE p.item_status = 'A' AND u.user_status = 'A' AND o.order_status = 'P' AND o.date_ordered >= '2023-01-01' ORDER BY o.date_ordered ASC;
+6.	<!DOCTYPE html>
+<html>
+<head>
+	<title>List of Products</title>
+</head>
+<body>
+	<h1>List of Products</h1>
+	<table>
+		<thead>
+			<tr>
+				<th>Item ID</th>
+				<th>Item Name</th>
+				<th>Item Price</th>
+				<th>Item Status</th>
+				<th>Date Added</th>
+				<th>Action</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>New Record</td>
+				<td><input type="text" name="item_name"></td>
+				<td><input type="number" name="item_price"></td>
+				<td>
+					<select name="item_status">
+						<option value="A">Active</option>
+						<option value="I">Inactive</option>
+					</select>
+				</td>
+				<td><input type="date" name="date_added"></td>
+				<td><button type="submit">Add</button></td>
+			</tr>
+			<?php
+			// Connect to the database
+			$servername = "localhost";
+			$username = "root";
+			$password = "";
+			$dbname = "myDB";
+			$conn = mysqli_connect($servername, $username, $password, $dbname);
+
+			// Check connection
+			if (!$conn) {
+				die("Connection failed: " . mysqli_connect_error());
+			}
+
+			// SQL query to get all products
+			$sql = "SELECT * FROM products";
+			$result = mysqli_query($conn, $sql);
+
+			// Loop through all products and display them in a table
+			while ($row = mysqli_fetch_assoc($result)) {
+				echo "<tr>";
+				echo "<td>" . $row["item_id"] . "</td>";
+				echo "<td>" . $row["item_name"] . "</td>";
+				echo "<td>" . $row["item_price"] . "</td>";
+				echo "<td>" . $row["item_status"] . "</td>";
+				echo "<td>" . $row["date_added"] . "</td>";
+				echo '<td><a href="update_product.php?item_id=' . $row["item_id"] . '">Update</a> <a href="delete_product.php?item_id=' . $row["item_id"] . '">Delete</a></td>';
+				echo "</tr>";
+			}
+
+			// Close the database connection
+			mysqli_close($conn);
+			?>
+		</tbody>
+	</table>
+</body>
+</html>
+7.	<!-- product.php -->
+<form action="add_product.php" method="post">
+  <label for="item_name">Item Name:</label>
+  <input type="text" name="item_name" required>
+
+  <label for="item_price">Item Price:</label>
+  <input type="number" name="item_price" min="0" step="0.01" required>
+
+  <input type="submit" value="Add Product">
+</form>
+8.<div class="col-md-4">
+                <h3>Add Product</h3>
+                <?php
+                     if(isset($_GET['new_record'])){
+                            switch($_GET['new_record']){
+                                case "added": echo "<div class='alert alert-success'>User Added.</div>";
+                                      break;
+                                case "failed":  echo "<div class='alert alert-danger'>User Not Added</div>";
+                                      break;
+                                        
+                            }
+                       }
+                ?>
+
+                <form action="add_product.php" method="post">
+                    <div class="form-group">
+                        <label for="item_name">Item Name</label>
+                        <input type="text" class="form-control" id="item_name" name="item_name" required>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="item_price">Item Price</label>
+                        <input type="number" class="form-control" id="item_price" name="item_price" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Product</button>
+                </form>
+            </div>
+9.<?php
+// Get the form data
+$item_name = $_POST['item_name'];
+$item_price = $_POST['item_price'];
+
+// Connect to the database
+$host = "localhost";
+$username = "username";
+$password = "password";
+$dbname = "flower_shop";
+$conn = mysqli_connect($host, $username, $password, $dbname);
+
+// Check for errors
+if (mysqli_connect_errno()) {
+  die("Connection failed: " . mysqli_connect_error());
+}
+
+// Insert the new product into the database
+$sql = "INSERT INTO products (item_name, item_price, item_status, date_added)
+        VALUES ('$item_name', $item_price, 'A', NOW())";
+
+if (mysqli_query($conn, $sql)) {
+  echo "New product added successfully.";
+} else {
+  echo "Error: " . mysqli_error($conn);
+}
+
+// Close the database connection
+mysqli_close($conn);
+?>
+10.<?php
+// Establish a database connection
+$servername = "localhost";
+$username = "username";
+$password = "password";
+$dbname = "flower_shop_db";
+
+$conn = mysqli_connect($servername, $username, $password, $dbname);
+
+// Check if the connection was successful
+if (!$conn) {
+    die("Connection failed: " . mysqli_connect_error());
+}
+
+// Get the user and item IDs from the form submission
+$user_id = $_POST['user_id'];
+$item_id = $_POST['item_id'];
+
+// Get the quantity of the item ordered
+$item_qty = $_POST['item_qty'];
+
+// Calculate the total amount for the order
+$sql = "SELECT item_price FROM products WHERE item_id = '$item_id'";
+$result = mysqli_query($conn, $sql);
+$row = mysqli_fetch_assoc($result);
+$item_price = $row['item_price'];
+$total_amount = $item_qty * $item_price;
+
+// Set the order status to pending
+$order_status = 'P';
+
+// Get the current date and time
+$date_ordered = date('Y-m-d H:i:s');
+
+// Perform the insert into the orders table
+$sql = "INSERT INTO orders (user_id, item_id, item_qty, total_amount, order_status, date_ordered) 
+        VALUES ('$user_id', '$item_id', '$item_qty', '$total_amount', '$order_status', '$date_ordered')";
+
+if (mysqli_query($conn, $sql)) {
+    echo "New order created successfully";
+} else {
+    echo "Error: " . $sql . "<br>" . mysqli_error($conn);
+}
+
+// Close the database connection
+mysqli_close($conn);
+?>
+11.<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Update Product</title>
+    <link rel="stylesheet" href="css/bootstrap.css">
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1>Update Product</h1>
+                <form action="update_product.php" method="post">
+                    <input type="hidden" name="item_id" value="<?php echo $_GET['item_id']; ?>">
+                    <div class="form-group">
+                        <label for="item_name">Item Name</label>
+                        <input type="text" class="form-control" id="item_name" name="item_name" value="<?php echo $item_name; ?>" required>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="item_price">Item Price</label>
+                        <input type="number" class="form-control" id="item_price" name="item_price" value="<?php echo $item_price; ?>" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Update Product</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="js/bootstrap.js"></script>
+</html>
+12.<?php
+
+// Check if the form is submitted
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
+    // Get the form data
+    $item_id = $_POST["item_id"];
+    $item_name = $_POST["item_name"];
+    $item_price = $_POST["item_price"];
+
+    // Create a PDO connection
+    $dsn = "mysql:host=localhost;dbname=flower_shop_db";
+    $username = "root";
+    $password = "";
+    $options = array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION);
+    $pdo = new PDO($dsn, $username, $password, $options);
+
+    // Prepare the SQL statement
+    $sql = "UPDATE items SET item_name = ?, item_price = ? WHERE item_id = ?";
+    $stmt = $pdo->prepare($sql);
+
+    // Execute the statement with the form data
+    $stmt->execute([$item_name, $item_price, $item_id]);
+
+    // Redirect to the products page
+    header("Location: products.php");
+    exit();
+}
+13.<form action="update_order_status.php" method="post">
+  <label for="order_id">Order ID:</label>
+  <input type="text" id="order_id" name="order_id" required>
+  <br><br>
+  <label for="status">New Status:</label>
+  <select id="status" name="status">
+    <option value="Delivered">Delivered</option>
+    <option value="Cancelled">Cancelled</option>
+    <option value="Returned">Returned</option>
+  </select>
+  <br><br>
+  <button type="submit">Update Status</button>
+</form>
+
+<?php
+// connect to the database
+$servername = "localhost";
+$username = "username";
+$password = "password";
+$dbname = "flower_shop";
+
+$conn = mysqli_connect($servername, $username, $password, $dbname);
+
+// check connection
+if (!$conn) {
+  die("Connection failed: " . mysqli_connect_error());
+}
+
+// get the order_id and status from the form
+$order_id = $_POST['order_id'];
+$status = $_POST['status'];
+
+// update the order status in the database
+$sql = "UPDATE orders SET order_status='$status' WHERE order_id=$order_id";
+
+if (mysqli_query($conn, $sql)) {
+  echo "Order status updated successfully";
+} else {
+  echo "Error updating order status: " . mysqli_error($conn);
+}
+
+mysqli_close($conn);
+?>
+14.<?php
+// Connect to the database
+$conn = mysqli_connect("localhost", "username", "password", "flower_shop_db");
+
+// Check if the connection was successful
+if (!$conn) {
+    die("Connection failed: " . mysqli_connect_error());
+}
+
+// Get the item ID from the URL parameter
+$item_id = $_GET["item_id"];
+
+// First deletion algorithm: Soft Delete
+// Update the item status to "inactive" instead of permanently deleting it
+$sql = "UPDATE items SET status = 'inactive' WHERE item_id = $item_id";
+$result = mysqli_query($conn, $sql);
+
+// Second deletion algorithm: Hard Delete
+// Permanently delete the item from the database
+$sql = "DELETE FROM items WHERE item_id = $item_id";
+$result = mysqli_query($conn, $sql);
+
+// Check if the query was successful
+if ($result) {
+    // Redirect to the display page
+    header("Location: display_items.php");
+} else {
+    // Display an error message
+    echo "Error deleting item: " . mysqli_error($conn);
+}
+
+// Close the database connection
+mysqli_close($conn);
+?>
+15.<?php
+// Connect to database
+$servername = "localhost";
+$username = "username";
+$password = "password";
+$dbname = "flower_shop_db";
+
+$conn = mysqli_connect($servername, $username, $password, $dbname);
+
+// Check connection
+if (!$conn) {
+    die("Connection failed: " . mysqli_connect_error());
+}
+
+// Delete orders placed before a certain date
+$delete_orders_query = "DELETE FROM orders WHERE date_ordered < '2022-01-01'";
+$result = mysqli_query($conn, $delete_orders_query);
+
+if ($result) {
+    echo "Orders placed before 2022-01-01 have been successfully deleted.";
+} else {
+    echo "Error deleting orders: " . mysqli_error($conn);
+}
+
+// Close connection
+mysqli_close($conn);
+?>
+16.<!-- products.php -->
+<?php
+// Initialize database connection
+$servername = "localhost";
+$username = "username";
+$password = "password";
+$dbname = "flower_shop";
+
+$conn = mysqli_connect($servername, $username, $password, $dbname);
+
+// Check connection
+if (!$conn) {
+    die("Connection failed: " . mysqli_connect_error());
+}
+
+// Retrieve data from products table
+$sql = "SELECT * FROM products";
+$result = mysqli_query($conn, $sql);
+
+// Check if there are any results
+if (mysqli_num_rows($result) > 0) {
+    // Output data of each row
+    while($row = mysqli_fetch_assoc($result)) {
+        echo "<div class='product'>";
+        echo "<h2>" . $row["item_name"] . "</h2>";
+        echo "<p>Price: " . $row["item_price"] . "</p>";
+        echo "<form action='checkout.php' method='post'>";
+        echo "<input type='hidden' name='item_id' value='" . $row["item_id"] . "'>";
+        echo "<input type='number' name='item_qty' value='1' min='1'>";
+        echo "<input type='submit' value='Buy now'>";
+        echo "</form>";
+        echo "</div>";
+    }
+} else {
+    echo "No products found.";
+}
+
+// Close database connection
+mysqli_close($conn);
+?>
+HTML/PHP interface for the checkout form:
+
+<!-- checkout.php -->
+<?php
+// Check if form was submitted
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Initialize database connection
+    $servername = "localhost";
+    $username = "username";
+    $password = "password";
+    $dbname = "flower_shop";
+
+    $conn = mysqli_connect($servername, $username, $password, $dbname);
+
+    // Check connection
+    if (!$conn) {
+        die("Connection failed: " . mysqli_connect_error());
+    }
+
+    // Retrieve data from products table
+    $item_id = $_POST["item_id"];
+    $item_qty = $_POST["item_qty"];
+    $sql = "SELECT * FROM products WHERE item_id = '$item_id'";
+    $result = mysqli_query($conn, $sql);
+    $row = mysqli_fetch_assoc($result);
+    $item_name = $row["item_name"];
+    $item_price = $row["item_price"];
+
+    // Retrieve data from users table or insert new user if it doesn't exist
+    $username = $_POST["username"];
+    $contact_number = $_POST["contact_number"];
+    $address = $_POST["address"];
+    $sql = "SELECT * FROM users WHERE username = '$username'";
+    $result = mysqli_query($conn, $sql);
+    if (mysqli_num_rows($result) > 0) {
+        $row = mysqli_fetch_assoc($result);
+        $user_id = $row["user_id"];
+        // Update user information
+        $sql = "UPDATE users SET contact_number = '$contact_number', address = '$address' WHERE username = '$username'";
+        mysqli_query($conn, $sql);
+    } else {
+        // Insert new user
+        $sql = "INSERT INTO users (username, contact_number, address) VALUES ('$username', '$contact_number', '$address')";
+        mysqli_query($conn, $sql);
+        $user_id = mysqli_insert_id($conn);
+    }
+
+    // Insert new order
+    $sql = "INSERT INTO orders (item_id, user_id, item_qty) VALUES ('$item_id', '$user_id', '$item_qty')";
+    mysqli_query($conn, $sql);
+
+    // Close database
+
